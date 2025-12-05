@@ -14,7 +14,8 @@ function Navigation() {
     backgroundColor: 'var(--bg-secondary)',
     borderRadius: '0.5rem',
     marginBottom: '2rem',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexWrap: 'wrap'
   };
 
   const linkStyle = (path) => ({
@@ -33,7 +34,7 @@ function Navigation() {
         📝 Basic OCR
       </Link>
       <Link to="/extract" style={linkStyle('/extract')}>
-        🎯 Smart Extraction
+        🎯 Smart Document Hub
       </Link>
     </nav>
   );

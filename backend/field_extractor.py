@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class FieldExtractor:
     """Extract structured fields from OCR text"""
     
-    def __init__(self):
+    def __init__(self, custom_patterns_path: str = "custom_patterns.json"):
         # Common patterns for field detection
         self.patterns = {
             'email': re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'),
@@ -34,15 +34,122 @@ class FieldExtractor:
             'number': re.compile(r'\b\d+\b'),
         }
         
-        # Field keywords for detection
-        self.field_keywords = {
-            'name': ['name', 'full name', 'nombre', 'apellido'],
-            'address': ['address', 'street', 'city', 'state', 'dirección'],
-            'dob': ['date of birth', 'dob', 'birth date', 'born', 'fecha de nacimiento'],
-            'id': ['id', 'identification', 'document number', 'license', 'passport'],
-            'phone': ['phone', 'telephone', 'mobile', 'cell', 'teléfono'],
-            'email': ['email', 'e-mail', 'correo'],
+        # Default Field keywords
+        self.default_keywords = {
+            'name': [
+                'name', 'full name', 'nombre', 'apellido', 'student name', 'name of student', 
+                'candidate name', 'name of candidate', 'holder name', 'name of holder', 
+                'first name', 'given name', 'surname', 'last name'
+            ],
+            'father_name': [
+                'father', 'father name', 'fathers name', 'father\'s name', 's/o', 'son of', 
+                'guardian', 'guardian name', 'parent'
+            ],
+            'mother_name': [
+                'mother', 'mother name', 'mothers name', 'mother\'s name', 'd/o', 'daughter of'
+            ],
+            'roll_no': [
+                'roll no', 'roll number', 'roll', 'enrollment', 'enrollment no', 'enrolment no',
+                'reg no', 'register no', 'registration no', 'registration number', 'reg. no',
+                'scholar no', 'scholar number', 'admission no', 'admn no', 'serial no', 
+                'unique id', 'uid', 'student id', 'id no', 'matricule', 'hall ticket no'
+            ],
+            'class': [
+                'class', 'course', 'programme', 'prog', 'stream', 'branch', 'standard', 'std',
+                'year', 'semester', 'sem', 'degree', 'qualification'
+            ],
+            'admission_year': [
+                'admn y', 'admission year', 'year of admission', 'admn year', 'date of admission',
+                'joining date', 'session', 'batch'
+            ],
+            'dob': [
+                'date of birth', 'dob', 'birth date', 'born', 'born on', 'fecha de nacimiento', 
+                'd.o.b', 'd.o.birth', 'birth'
+            ],
+            'id_number': [
+                'id', 'identification', 'document number', 'license', 'license no', 'dl no',
+                'passport', 'passport no', 'card no', 'identity card no', 'aadhaar', 'pan'
+            ],
+            'address': [
+                'address', 'street', 'city', 'state', 'dirección', 'residence', 'residential address',
+                'permanent address', 'correspondence address', 'place of residence', 'domicile'
+            ],
+            'phone': [
+                'phone', 'telephone', 'mobile', 'cell', 'teléfono', 'contact', 'contact no', 'mob'
+            ],
+            'email': [
+                'email', 'e-mail', 'correo', 'mail', 'email id'
+            ],
+            'gender': [
+                'gender', 'sex', 'sexo'
+            ],
+            'blood_group': [
+                'blood group', 'bg', 'b.g.', 'blood'
+            ]
         }
+        
+        self.custom_patterns_path = custom_patterns_path
+        self.field_keywords = self._load_patterns()
+
+    def _load_patterns(self) -> Dict[str, List[str]]:
+        """Load patterns merging defaults with custom ones"""
+        import json
+        import os
+        
+        keywords = self.default_keywords.copy()
+        
+        if os.path.exists(self.custom_patterns_path):
+            try:
+                with open(self.custom_patterns_path, 'r') as f:
+                    custom = json.load(f)
+                    # Merge custom keywords
+                    for field, kws in custom.items():
+                        if field in keywords:
+                            # Add unique new keywords
+                            keywords[field].extend([k for k in kws if k not in keywords[field]])
+                        else:
+                            keywords[field] = kws
+                logging.info(f"Loaded custom patterns from {self.custom_patterns_path}")
+            except Exception as e:
+                logging.error(f"Failed to load custom patterns: {e}")
+        
+        return keywords
+
+    def save_custom_pattern(self, field: str, keyword: str) -> bool:
+        """Add a new keyword to a field and save it"""
+        import json
+        import os
+        
+        field = field.lower()
+        keyword = keyword.lower()
+        
+        # Update in-memory
+        if field not in self.field_keywords:
+            self.field_keywords[field] = []
+        
+        if keyword not in self.field_keywords[field]:
+            self.field_keywords[field].append(keyword)
+        
+        # Save to file
+        try:
+            current_custom = {}
+            if os.path.exists(self.custom_patterns_path):
+                with open(self.custom_patterns_path, 'r') as f:
+                    current_custom = json.load(f)
+            
+            if field not in current_custom:
+                current_custom[field] = []
+            
+            if keyword not in current_custom[field]:
+                current_custom[field].append(keyword)
+                
+            with open(self.custom_patterns_path, 'w') as f:
+                json.dump(current_custom, f, indent=2)
+            
+            return True
+        except Exception as e:
+            logging.error(f"Failed to save custom pattern: {e}")
+            return False
     
     def extract_all_fields(self, text: str, document_type: str = "general") -> Dict:
         """
@@ -81,35 +188,123 @@ class FieldExtractor:
     def _extract_id_card_fields(self, text: str) -> Dict:
         """Extract fields specific to ID cards"""
         fields = {}
-        lines = text.split('\n')
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
         
-        # Extract name (usually first or second line, capitalized)
-        name = self._extract_name(lines)
+        # 1. Extract Name (Look for 'Name' keyword first)
+        name = self._extract_name_specific(lines)
         if name:
             fields['full_name'] = name
         
-        # Extract ID number
-        id_number = self._extract_id_number(text)
-        if id_number:
-            fields['id_number'] = id_number
-        
-        # Extract date of birth
+        # 2. Extract Roll No
+        roll_no = self._extract_roll_no(text)
+        if roll_no:
+            fields['roll_no'] = roll_no
+            
+        # 3. Extract Class/Course
+        course_class = self._extract_class(text)
+        if course_class:
+            fields['class'] = course_class
+
+        # 4. Extract Date of Birth
         dob = self._extract_date_of_birth(text)
         if dob:
             fields['date_of_birth'] = dob
+            
+        # 5. Extract Admission Year
+        admn_year = self._extract_admission_year(text)
+        if admn_year:
+            fields['admission_year'] = admn_year
+
+        # 6. Extract ID number (fallback if Roll No not found or distinct)
+        if 'roll_no' not in fields:
+            id_number = self._extract_id_number(text)
+            if id_number:
+                fields['id_number'] = id_number
         
-        # Extract address
+        # 7. Extract address
         address = self._extract_address(lines)
         if address:
             fields['address'] = address
         
-        # Extract gender
+        # 8. Extract gender
         gender = self._extract_gender(text)
         if gender:
             fields['gender'] = gender
         
         return fields
-    
+
+    def _extract_name_specific(self, lines: List[str]) -> Optional[str]:
+        """Extract name looking for specific 'Name' labels"""
+        # Strategy 1: Look for "Name" prefix
+        name_pattern = re.compile(r'^(?:Name|Student Name|Name of Student)[\s.:]+([A-Za-z\s.]+)', re.IGNORECASE)
+        for line in lines:
+            match = name_pattern.match(line)
+            if match:
+                return match.group(1).strip()
+        
+        # Strategy 2: Fallback to heuristic (capitalized words on early lines)
+        return self._extract_name(lines)
+
+    def _extract_roll_no(self, text: str) -> Optional[str]:
+        """Extract Roll Number"""
+        # Matches: Roll No 24/94076, Roll No. 12345, Roll: 123
+        pattern = re.compile(r'(?:Roll\s*No|Roll\s*Number|Roll)[\s.:]+([A-Z0-9/]+)', re.IGNORECASE)
+        match = pattern.search(text)
+        if match:
+            return match.group(1).strip()
+        return None
+
+    def _extract_class(self, text: str) -> Optional[str]:
+        """Extract Class or Course"""
+        # Matches: Class B.SC.(H) COMPUTER, Course: B.A.
+        pattern = re.compile(r'(?:Class|Course|Prog|Programme)[\s.:]+([A-Za-z0-9.()\s]+)', re.IGNORECASE)
+        match = pattern.search(text)
+        if match:
+            # Clean up the result (stop at newline or likely end of course name)
+            course = match.group(1).strip()
+            # Heuristic: stop if we hit another label like "D.O.Birth"
+            course = re.split(r'\s+(?:D\.O\.B|Date|Admn)', course)[0]
+            return course.strip()
+        return None
+
+    def _extract_admission_year(self, text: str) -> Optional[str]:
+        """Extract Admission Year"""
+        # Matches: Admn. Y 30/08/2024, Admission Year 2024
+        pattern = re.compile(r'(?:Admn\.?\s*Y|Admission\s*Year|Admn)[\s.:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4})', re.IGNORECASE)
+        match = pattern.search(text)
+        if match:
+            return match.group(1).strip()
+        return None
+
+    def _extract_date_of_birth(self, text: str) -> Optional[str]:
+        """Extract date of birth"""
+        # Enhanced pattern to catch D.O.Birth, DOB, etc.
+        dob_pattern = re.compile(
+            r'(?:D\.O\.Birth|D\.O\.B\.?|Date of Birth|Born|Birth Date)[\s.:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
+            re.IGNORECASE
+        )
+        
+        match = dob_pattern.search(text)
+        if match:
+            date_str = match.group(1)
+            return self._parse_date(date_str)
+        
+        # Fallback: Try to find dates and infer DOB (typically older date)
+        dates = self.patterns['date'].findall(text)
+        if dates:
+            parsed_dates = []
+            for date_str in dates:
+                parsed = self._parse_date(date_str)
+                if parsed:
+                    parsed_dates.append((parsed, date_str))
+            
+            # DOB is typically the oldest date
+            if parsed_dates:
+                parsed_dates.sort(key=lambda x: x[0])
+                return parsed_dates[0][1]
+        
+        return None
+
     def _extract_passport_fields(self, text: str) -> Dict:
         """Extract fields specific to passports"""
         fields = {}
@@ -211,35 +406,6 @@ class FieldExtractor:
         
         return None
     
-    def _extract_date_of_birth(self, text: str) -> Optional[str]:
-        """Extract date of birth"""
-        # Look for context keywords
-        dob_pattern = re.compile(
-            r'(?:DOB|Date of Birth|Born|Birth Date)[\s:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
-            re.IGNORECASE
-        )
-        
-        match = dob_pattern.search(text)
-        if match:
-            date_str = match.group(1)
-            return self._parse_date(date_str)
-        
-        # Try to find dates and infer DOB (typically older date)
-        dates = self.patterns['date'].findall(text)
-        if dates:
-            parsed_dates = []
-            for date_str in dates:
-                parsed = self._parse_date(date_str)
-                if parsed:
-                    parsed_dates.append((parsed, date_str))
-            
-            # DOB is typically the oldest date
-            if parsed_dates:
-                parsed_dates.sort(key=lambda x: x[0])
-                return parsed_dates[0][1]
-        
-        return None
-    
     def _extract_expiry_date(self, text: str) -> Optional[str]:
         """Extract expiry/expiration date"""
         expiry_pattern = re.compile(
@@ -260,10 +426,10 @@ class FieldExtractor:
         for line in lines:
             line = line.strip()
             # Address lines often contain numbers (street numbers, postal codes)
-            if any(keyword in line.lower() for keyword in ['street', 'st', 'ave', 'road', 'rd', 'city']):
+            if any(keyword in line.lower() for keyword in ['street', 'st', 'ave', 'road', 'rd', 'city', 'delhi', 'mumbai', 'lane', 'sector']):
                 address_parts.append(line)
-            elif re.search(r'\d+', line) and len(line.split()) > 2:
-                # Likely an address line with street number
+            elif re.search(r'\d+', line) and len(line.split()) > 2 and not any(k in line.lower() for k in ['dob', 'date', 'phone', 'id', 'no']):
+                # Likely an address line with street number, excluding other fields
                 address_parts.append(line)
         
         if address_parts:

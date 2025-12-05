@@ -309,6 +309,33 @@ def post_process_ocr_text(text: str) -> str:
     return text.strip()
 
 
+class TrainingPattern(BaseModel):
+    field: str
+    keyword: str
+
+@api_router.get("/training/patterns")
+async def get_training_patterns():
+    """Get all field patterns including custom ones"""
+    extractor = FieldExtractor()
+    return extractor.field_keywords
+
+@api_router.post("/training/patterns")
+async def add_training_pattern(pattern: TrainingPattern):
+    """Add a new keyword pattern for a field"""
+    extractor = FieldExtractor()
+    if not pattern.field or not pattern.keyword:
+        raise HTTPException(status_code=400, detail="Field and keyword are required")
+        
+    success = extractor.save_custom_pattern(pattern.field, pattern.keyword)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to save pattern")
+        
+    return {
+        "message": f"Successfully trained system to recognize '{pattern.keyword}' as '{pattern.field}'", 
+        "patterns": extractor.field_keywords
+    }
+
+
 @api_router.post("/extract-fields")
 async def extract_fields(
     file: UploadFile = File(...),

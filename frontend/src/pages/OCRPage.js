@@ -63,7 +63,7 @@ function OCRPage() {
 
   return (
     <div className="container">
-      <h1>OCR Text Extractor</h1>
+      <h1>OCR Text Extractor <span style={{ fontSize: '1rem', color: '#666', fontWeight: 'normal' }}>v2.0</span></h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
         Upload an image to extract text instantly.
       </p>
@@ -203,7 +203,27 @@ function OCRPage() {
 
           {/* Action Buttons */}
           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {isEditing ? (
+            {/* Edit Button - Forced Visibility */}
+            {!isEditing && (
+              <button
+                id="edit-btn"
+                className="btn-primary"
+                onClick={() => {
+                  console.log("Edit mode activated");
+                  setIsEditing(true);
+                }}
+                style={{
+                  backgroundColor: '#3b82f6', // Bright Blue
+                  display: 'inline-block',
+                  visibility: 'visible',
+                  opacity: 1
+                }}
+              >
+                ✎ Edit Text
+              </button>
+            )}
+
+            {isEditing && (
               <>
                 <button
                   className="btn-primary"
@@ -226,14 +246,6 @@ function OCRPage() {
                   ✗ Cancel
                 </button>
               </>
-            ) : (
-              <button
-                className="btn-primary"
-                onClick={() => setIsEditing(true)}
-                style={{ backgroundColor: 'var(--primary)' }}
-              >
-                ✎ Edit Text
-              </button>
             )}
 
             <button
