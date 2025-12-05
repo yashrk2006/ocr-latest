@@ -6,6 +6,9 @@ function OCRPage() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrResult, setOcrResult] = useState('');
   const [confidence, setConfidence] = useState(0);
+  const [language, setLanguage] = useState('eng');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedText, setEditedText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,7 +39,7 @@ function OCRPage() {
 
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/ocr`, {
+      const response = await fetch(`${backendUrl}/api/ocr?language=${language}`, {
         method: 'POST',
         body: formData,
       });
@@ -48,6 +51,7 @@ function OCRPage() {
 
       const data = await response.json();
       setOcrResult(data.text);
+      setEditedText(data.text);
       setConfidence(data.confidence || 0);
     } catch (err) {
       console.error("OCR Error:", err);
@@ -63,6 +67,50 @@ function OCRPage() {
       <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
         Upload an image to extract text instantly.
       </p>
+
+      {/* Language Selector */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+          🌍 Language:
+        </label>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          style={{
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            border: '2px solid var(--border)',
+            backgroundColor: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            fontSize: '1rem',
+            width: '100%',
+            maxWidth: '300px'
+          }}
+        >
+          <option value="eng">English</option>
+          <option value="spa">Spanish (Español)</option>
+          <option value="fra">French (Français)</option>
+          <option value="deu">German (Deutsch)</option>
+          <option value="hin">Hindi (हिन्दी)</option>
+          <option value="ara">Arabic (العربية)</option>
+          <option value="chi_sim">Chinese Simplified (简体中文)</option>
+          <option value="chi_tra">Chinese Traditional (繁體中文)</option>
+          <option value="jpn">Japanese (日本語)</option>
+          <option value="kor">Korean (한국어)</option>
+          <option value="rus">Russian (Русский)</option>
+          <option value="por">Portuguese (Português)</option>
+          <option value="ita">Italian (Italiano)</option>
+          <option value="nld">Dutch (Nederlands)</option>
+          <option value="pol">Polish (Polski)</option>
+          <option value="tur">Turkish (Türkçe)</option>
+          <option value="vie">Vietnamese (Tiếng Việt)</option>
+          <option value="tha">Thai (ไทย)</option>
+          <option value="ben">Bengali (বাংলা)</option>
+          <option value="mar">Marathi (मराठी)</option>
+          <option value="tam">Tamil (தமிழ்)</option>
+          <option value="tel">Telugu (తెలుగు)</option>
+        </select>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div className="upload-area">
@@ -109,32 +157,140 @@ function OCRPage() {
         <div className="result-area">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0 }}>Extracted Text:</h3>
-            {confidence > 0 && (
-              <span
-                className="confidence-badge"
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '2rem',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  backgroundColor: confidence >= 80 ? '#10b981' : confidence >= 60 ? '#f59e0b' : '#ef4444',
-                  color: 'white'
-                }}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {confidence > 0 && (
+                <span
+                  className="confidence-badge"
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '2rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    backgroundColor: confidence >= 80 ? '#10b981' : confidence >= 60 ? '#f59e0b' : '#ef4444',
+                    color: 'white'
+                  }}
+                >
+                  {confidence}% Confidence
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Editable Text Area */}
+          {isEditing ? (
+            <textarea
+              value={editedText}
+              onChange={(e) => setEditedText(e.target.value)}
+              style={{
+                width: '100%',
+                minHeight: '300px',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                border: '2px solid var(--primary)',
+                backgroundColor: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                fontSize: '1rem',
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                lineHeight: '1.6'
+              }}
+            />
+          ) : (
+            <div className="result-box" style={{ whiteSpace: 'pre-wrap' }}>
+              {editedText}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {isEditing ? (
+              <>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    setOcrResult(editedText);
+                    setIsEditing(false);
+                  }}
+                  style={{ backgroundColor: '#10b981' }}
+                >
+                  ✓ Save Changes
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    setEditedText(ocrResult);
+                    setIsEditing(false);
+                  }}
+                  style={{ backgroundColor: '#ef4444' }}
+                >
+                  ✗ Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                className="btn-primary"
+                onClick={() => setIsEditing(true)}
+                style={{ backgroundColor: 'var(--primary)' }}
               >
-                {confidence}% Confidence
-              </span>
+                ✎ Edit Text
+              </button>
             )}
+
+            <button
+              className="btn-primary"
+              style={{ backgroundColor: 'var(--text-secondary)' }}
+              onClick={() => navigator.clipboard.writeText(editedText)}
+            >
+              📋 Copy to Clipboard
+            </button>
+
+            <button
+              className="btn-primary"
+              style={{ backgroundColor: '#6366f1' }}
+              onClick={() => {
+                const blob = new Blob([editedText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extracted-text.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              💾 Download as TXT
+            </button>
+
+            {/* Text Formatting Options */}
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+              <button
+                className="btn-primary"
+                style={{ backgroundColor: '#8b5cf6', padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                onClick={() => setEditedText(editedText.toUpperCase())}
+                title="Convert to UPPERCASE"
+              >
+                AA
+              </button>
+              <button
+                className="btn-primary"
+                style={{ backgroundColor: '#8b5cf6', padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                onClick={() => setEditedText(editedText.toLowerCase())}
+                title="Convert to lowercase"
+              >
+                aa
+              </button>
+              <button
+                className="btn-primary"
+                style={{ backgroundColor: '#8b5cf6', padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                onClick={() => {
+                  const titleCase = editedText.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                  setEditedText(titleCase);
+                }}
+                title="Convert to Title Case"
+              >
+                Aa
+              </button>
+            </div>
           </div>
-          <div className="result-box">
-            {ocrResult}
-          </div>
-          <button
-            className="btn-primary"
-            style={{ marginTop: '1rem', backgroundColor: 'var(--text-secondary)' }}
-            onClick={() => navigator.clipboard.writeText(ocrResult)}
-          >
-            Copy to Clipboard
-          </button>
         </div>
       )}
     </div>

@@ -1,0 +1,46 @@
+// Add this code after line 134 in DocumentExtractorPage.js
+// Right after the Document Type Selector closing </div>
+
+{/* Language Selector */}
+<div style={{ marginBottom: '2rem' }}>
+  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+    🌍 Language:
+  </label>
+  <select
+    value={language}
+    onChange={(e) => setLanguage(e.target.value)}
+    style={{
+      padding: '0.75rem',
+      borderRadius: '0.5rem',
+      border: '2px solid var(--border)',
+      backgroundColor: 'var(--bg-secondary)',
+      color: 'var(--text-primary)',
+      fontSize: '1rem',
+      width: '100%',
+      maxWidth: '300px'
+    }}
+  >
+    <option value="eng">English</option>
+    <option value="spa">Spanish (Español)</option>
+    <option value="fra">French (Français)</option>
+    <option value="deu">German (Deutsch)</option>
+    <option value="hin">Hindi (हिन्दी)</option>
+    <option value="ar a">Arabic (العربية)</option>
+    <option value="chi_sim">Chinese Simplified (简体中文)</option>
+    <option value="chi_tra">Chinese Traditional (繁體中文)</option>
+    <option value="jpn">Japanese (日本語)</option>
+   <option value="kor">Korean (한국어)</option>
+    <option value="rus">Russian (Русский)</option>
+    <option value="por">Portuguese (Português)</option>
+    <option value="ita">Italian (Italiano)</option>
+    <option value="nld">Dutch (Nederlands)</option>
+    <option value="pol">Polish (Polski)</option>
+    <option value="tur">Turkish (Türkçe)</option>
+    <option value="vie">Vietnamese (Tiếng Việt)</option>
+    <option value="tha">Thai (ไทย)</option>
+    <option value="ben">Bengali (বাংলা)</option>
+    <option value="mar">Marathi (मराठी)</option>
+    <option value="tam">Tamil (தமிழ்)</option>
+    <option value="tel">Telugu (తెలుగు)</option>
+  </select>
+</div>

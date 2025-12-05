@@ -14,6 +14,8 @@ from io import BytesIO
 from PIL import Image
 import pytesseract
 
+from field_extractor import FieldExtractor
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -99,14 +101,67 @@ if not shutil.which('tesseract'):
             pytesseract.pytesseract.tesseract_cmd = path
             break
 
+@api_router.get("/available-languages")
+async def get_available_languages():
+    """
+    Get list of installed Tesseract languages
+    """
+    try:
+        import subprocess
+        result = subprocess.run(
+            [pytesseract.pytesseract.tesseract_cmd, '--list-langs'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        available_langs = result.stdout.strip().split('\n')[1:]  # Skip first line (header)
+        return {
+            "languages": available_langs,
+            "count": len(available_langs),
+            "message": "To add more languages, download .traineddata files from https://github.com/tesseract-ocr/tessdata"
+        }
+    except Exception as e:
+        logger.exception("Error getting available languages")
+        return {
+            "languages": ["eng"],
+            "count": 1,
+            "error": str(e)
+        }
+
 @api_router.post("/ocr")
-async def perform_ocr(file: UploadFile = File(...)):
+async def perform_ocr(
+    file: UploadFile = File(...),
+    language: str = "eng"
+):
     """
     Perform OCR on an uploaded image file and return extracted text.
     Uses Tesseract OCR with advanced image preprocessing for better accuracy.
+    
+    Args:
+        file: Image file to process
+        language: Tesseract language code (eng, spa, fra, deu, hin, ara, etc.)
     """
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Only image files are supported for OCR.")
+
+    # Validate language is installed
+    try:
+        import subprocess
+        result = subprocess.run(
+            [pytesseract.pytesseract.tesseract_cmd, '--list-langs'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        available_langs = result.stdout.strip().split('\n')[1:]  # Skip first line (header)
+        
+        if language not in available_langs:
+            logger.warning(f"Language '{language}' not installed. Available: {available_langs}")
+            # Fallback to English
+            language = 'eng'
+            logger.info(f"Falling back to English (eng)")
+    except Exception as e:
+        logger.warning(f"Could not check available languages: {e}. Proceeding with {language}")
 
     try:
         file_bytes = await file.read()
@@ -172,11 +227,11 @@ async def perform_ocr(file: UploadFile = File(...)):
                 # OEM 1 = LSTM neural network mode (most accurate for modern documents)
                 custom_config = f'--oem 1 --psm {psm}'
                 
-                # Try on the enhanced binary image
-                text = pytesseract.image_to_string(binary_image, config=custom_config)
+                # Try on the enhanced binary image with specified language
+                text = pytesseract.image_to_string(binary_image, lang=language, config=custom_config)
                 
                 # Also get confidence data
-                data = pytesseract.image_to_data(binary_image, config=custom_config, output_type=pytesseract.Output.DICT)
+                data = pytesseract.image_to_data(binary_image, lang=language, config=custom_config, output_type=pytesseract.Output.DICT)
                 
                 # Calculate average confidence
                 confidences = [int(conf) for conf in data['conf'] if conf != '-1']
@@ -197,7 +252,7 @@ async def perform_ocr(file: UploadFile = File(...)):
         if not best_text.strip():
             logger.warning("All PSM modes failed or returned empty, using fallback")
             custom_config = r'--oem 1 --psm 3'
-            best_text = pytesseract.image_to_string(image_sharp, config=custom_config)
+            best_text = pytesseract.image_to_string(image_sharp, lang=language, config=custom_config)
         
         logger.info(f"OCR completed with confidence: {best_confidence:.2f}%")
         
@@ -252,6 +307,81 @@ def post_process_ocr_text(text: str) -> str:
     text = re.sub(r'([.,!?;:])(?=[A-Za-z])', r'\1 ', text)  # Add space after punctuation if missing
     
     return text.strip()
+
+
+@api_router.post("/extract-fields")
+async def extract_fields(
+    file: UploadFile = File(...),
+    document_type: str = "general",
+    language: str = "eng"
+):
+    """
+    Extract structured fields from a document image.
+    
+    Args:
+        file: Image file upload
+        document_type: Type of document (id_card, passport, form, general)
+        language: Tesseract language code (eng, spa, fra, deu, hin, ara, etc.)
+    
+    Returns:
+        Extracted fields with confidence scores
+    """
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are supported.")
+    
+    try:
+        # First, perform OCR to get text
+        file_bytes = await file.read()
+        
+        # Open and preprocess image (reuse logic from perform_ocr)
+        original_image = Image.open(BytesIO(file_bytes))
+        
+        if original_image.mode != 'RGB':
+            original_image = original_image.convert('RGB')
+        
+        # Upscale if needed
+        width, height = original_image.size
+        min_dimension = 2000
+        if width < min_dimension or height < min_dimension:
+            scale_factor = max(min_dimension / width, min_dimension / height)
+            new_width = int(width * scale_factor)
+            new_height = int(height * scale_factor)
+            original_image = original_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Convert to grayscale and enhance
+        image = original_image.convert('L')
+        
+        from PIL import ImageFilter, ImageEnhance
+        image_blurred = image.filter(ImageFilter.GaussianBlur(radius=1))
+        
+        enhancer = ImageEnhance.Contrast(image_blurred)
+        image_contrast = enhancer.enhance(2.0)
+        
+        enhancer = ImageEnhance.Sharpness(image_contrast)
+        image_sharp = enhancer.enhance(2.0)
+        
+        # Perform OCR with specified language
+        custom_config = r'--oem 1 --psm 6'
+        raw_text = pytesseract.image_to_string(image_sharp, lang=language, config=custom_config)
+        
+        # Post-process text
+        processed_text = post_process_ocr_text(raw_text)
+        
+        # Extract structured fields
+        extractor = FieldExtractor()
+        result = extractor.extract_all_fields(processed_text, document_type)
+        
+        # Add raw text to result
+        result['raw_text'] = processed_text
+        
+        logger.info(f"Extracted {len(result['fields'])} fields from {document_type}")
+        
+        return result
+        
+    except Exception as exc:
+        logger.exception("Error during field extraction")
+        raise HTTPException(status_code=500, detail=f"Field extraction failed: {str(exc)}") from exc
+
 
 # Include the router in the main app
 app.include_router(api_router)
