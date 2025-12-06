@@ -38,8 +38,7 @@ function DocumentExtractorPage() {
 
     const fetchTrainingPatterns = async () => {
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
-            const res = await fetch(`${backendUrl}/api/training/patterns`);
+            const res = await fetch(`/api/training/patterns`);
             if (res.ok) {
                 const data = await res.json();
                 setTrainingPatterns(data);
@@ -52,8 +51,7 @@ function DocumentExtractorPage() {
     const handleAddPattern = async () => {
         if (!newKeyword.trim()) return;
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
-            const res = await fetch(`${backendUrl}/api/training/patterns`, {
+            const res = await fetch(`/api/training/patterns`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ field: selectedTrainingField, keyword: newKeyword })
@@ -121,9 +119,9 @@ function DocumentExtractorPage() {
         formDataObj.append('file', selectedFile);
 
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+            // Use relative path for unified deployment
             const response = await fetch(
-                `${backendUrl}/api/extract-fields?document_type=${documentType}&language=${language}`,
+                `/api/extract-fields?document_type=${documentType}&language=${language}`,
                 {
                     method: 'POST',
                     body: formDataObj,

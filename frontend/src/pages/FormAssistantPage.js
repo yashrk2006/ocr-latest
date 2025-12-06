@@ -36,9 +36,9 @@ function FormAssistantPage() {
         formData.append('file', selectedFile);
 
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+            // Use relative path for unified deployment
             const response = await fetch(
-                `${backendUrl}/api/extract-fields?document_type=general&language=${language}`,
+                `/api/extract-fields?document_type=general&language=${language}`,
                 {
                     method: 'POST',
                     body: formData,
