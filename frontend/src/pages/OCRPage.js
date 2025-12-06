@@ -96,6 +96,7 @@ function OCRPage() {
           <option value="fra">French (Français)</option>
           <option value="deu">German (Deutsch)</option>
           <option value="hin">Hindi (हिन्दी)</option>
+          <option value="hin+eng">Hindi + English (Mixed)</option>
           <option value="ara">Arabic (العربية)</option>
           <option value="chi_sim">Chinese Simplified (简体中文)</option>
           <option value="chi_tra">Chinese Traditional (繁體中文)</option>
@@ -132,6 +133,12 @@ function OCRPage() {
                 alt="Preview"
                 style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '0.5rem' }}
               />
+            ) : selectedFile && selectedFile.type === 'application/pdf' ? (
+              <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📄</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 600 }}>{selectedFile.name}</span>
+                <p style={{ color: 'var(--text-secondary)' }}>PDF Document Ready</p>
+              </div>
             ) : (
               <div>
                 <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📁</span>

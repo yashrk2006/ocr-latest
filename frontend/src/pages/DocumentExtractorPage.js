@@ -348,6 +348,7 @@ function DocumentExtractorPage() {
                                 <option value="fra">French (Français)</option>
                                 <option value="deu">German (Deutsch)</option>
                                 <option value="hin">Hindi (हिन्दी)</option>
+                                <option value="hin+eng">Hindi + English (Mixed)</option>
                                 <option value="ara">Arabic (العربية)</option>
                                 <option value="chi_sim">Chinese Simplified (简体中文)</option>
                                 <option value="chi_tra">Chinese Traditional (繁體中文)</option>
@@ -376,13 +377,18 @@ function DocumentExtractorPage() {
                                     accept="image/*,application/pdf"
                                     style={{ width: '100%' }}
                                 />
-                                {previewUrl && (
+                                {previewUrl ? (
                                     <img
                                         src={previewUrl}
                                         alt="Preview"
                                         style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '0.5rem', marginTop: '1rem' }}
                                     />
-                                )}
+                                ) : selectedFile && selectedFile.type === 'application/pdf' ? (
+                                    <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#e2e8f0', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>📄</span>
+                                        <span style={{ fontWeight: 500 }}>{selectedFile.name}</span>
+                                    </div>
+                                ) : null}
                             </div>
                             <button
                                 type="submit"

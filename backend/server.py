@@ -1,4 +1,6 @@
 from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -410,6 +412,38 @@ async def extract_fields(
 
 # Include the router in the main app
 app.include_router(api_router)
+
+# Serve React Frontend
+build_dir = ROOT_DIR.parent / "frontend" / "build"
+
+if build_dir.exists():
+    # 1. Mount the static assets (JS, CSS, images)
+    # React build usually puts them in a 'static' folder, but also specific files at root
+    app.mount("/static", StaticFiles(directory=str(build_dir / "static")), name="static")
+    
+    # 2. Serve specific root files (favicon, manifest, etc.) if they exist
+    # This loop is optional but good for typical CRA structure
+    for file in build_dir.iterdir():
+        if file.is_file():
+            # Create specific routes for root files to avoid conflict with catch-all
+            # e.g. /favicon.ico, /manifest.json
+            @app.get(f"/{file.name}", include_in_schema=False)
+            async def serve_root_file(file_path=file): # capture closure variable
+                return FileResponse(file_path)
+
+    # 3. Catch-all route for SPA (React Router) - serve index.html
+    # This must be the LAST route
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # Check if strictly requesting an API route that somehow fell through (unlikely)
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+            
+        # Serve index.html
+        return FileResponse(build_dir / "index.html")
+
+else:
+    logger.warning("Frontend build directory not found. Run 'npm run build' in frontend folder.")
 
 app.add_middleware(
     CORSMiddleware,
