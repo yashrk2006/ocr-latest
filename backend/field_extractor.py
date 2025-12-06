@@ -39,7 +39,14 @@ class FieldExtractor:
             'name': [
                 'name', 'full name', 'nombre', 'apellido', 'student name', 'name of student', 
                 'candidate name', 'name of candidate', 'holder name', 'name of holder', 
-                'first name', 'given name', 'surname', 'last name'
+                'first name', 'given name', 'surname', 'last name',
+                'applicant', 'signed by', 'attn', 'to the attention of', 'in the matter of'
+            ],
+            'role': [
+                'job title', 'position', 'role', 'designated as', 'the parties herein'
+            ],
+            'organization': [
+                'company', 'firm name', 'organization', 'on behalf of', 'represented by'
             ],
             'father_name': [
                 'father', 'father name', 'fathers name', 'father\'s name', 's/o', 'son of', 
@@ -54,6 +61,11 @@ class FieldExtractor:
                 'scholar no', 'scholar number', 'admission no', 'admn no', 'serial no', 
                 'unique id', 'uid', 'student id', 'id no', 'matricule', 'hall ticket no'
             ],
+            'id_number': [
+                'id', 'identification', 'document number', 'license', 'license no', 'dl no',
+                'passport', 'passport no', 'card no', 'identity card no', 'aadhaar', 'pan',
+                'case number', 'reference no', 'policy id', 'file', 'acct', 'account'
+            ],
             'class': [
                 'class', 'course', 'programme', 'prog', 'stream', 'branch', 'standard', 'std',
                 'year', 'semester', 'sem', 'degree', 'qualification'
@@ -66,19 +78,34 @@ class FieldExtractor:
                 'date of birth', 'dob', 'birth date', 'born', 'born on', 'fecha de nacimiento', 
                 'd.o.b', 'd.o.birth', 'birth'
             ],
-            'id_number': [
-                'id', 'identification', 'document number', 'license', 'license no', 'dl no',
-                'passport', 'passport no', 'card no', 'identity card no', 'aadhaar', 'pan'
+            'effective_date': [
+                'dated', 'effective', 'commencement date', 'this agreement is made on', 'as of', 'signed this'
+            ],
+            'expiry_date': [
+                'expires on', 'termination date', 'valid until', 'date due', 'date of payment', 'expiry', 'expiration'
+            ],
+            'document_date': [
+                'date', 'submitted on', 'issued'
             ],
             'address': [
                 'address', 'street', 'city', 'state', 'dirección', 'residence', 'residential address',
-                'permanent address', 'correspondence address', 'place of residence', 'domicile'
+                'permanent address', 'correspondence address', 'place of residence', 'domicile',
+                'location', 'premises', 'to', 'zip code', 'postal code'
             ],
             'phone': [
-                'phone', 'telephone', 'mobile', 'cell', 'teléfono', 'contact', 'contact no', 'mob'
+                'phone', 'telephone', 'mobile', 'cell', 'teléfono', 'contact', 'contact no', 'mob', 'tel', 'fax'
             ],
             'email': [
                 'email', 'e-mail', 'correo', 'mail', 'email id'
+            ],
+            'amount': [
+                'total', 'amount due', 'balance', 'sum of', 'consideration', 'total contract value'
+            ],
+            'currency': [
+                'usd', 'gbp', 'eur', 'currency'
+            ],
+            'payment_terms': [
+                'payment', 'terms', 'due within', 'net 30'
             ],
             'gender': [
                 'gender', 'sex', 'sexo'
@@ -165,25 +192,64 @@ class FieldExtractor:
         fields = {}
         confidence = {}
         
-        # Extract by document type
+        # 1. Always try dynamic extraction for ALL known fields
+        # This ensures we catch things like "Total Amount" even in an ID card if present
+        dynamic_fields = self._extract_fields_dynamically(text)
+        fields.update(dynamic_fields)
+
+        # 2. Apply specific logic based on document type (can override or augment)
         if document_type == "id_card":
-            fields = self._extract_id_card_fields(text)
+            id_fields = self._extract_id_card_fields(text)
+            fields.update(id_fields)
         elif document_type == "passport":
-            fields = self._extract_passport_fields(text)
+            pass_fields = self._extract_passport_fields(text)
+            fields.update(pass_fields)
         elif document_type == "form":
-            fields = self._extract_form_fields(text)
-        else:
-            fields = self._extract_generic_fields(text)
+            form_fields = self._extract_form_fields(text)
+            fields.update(form_fields)
+        
+        # 3. General Auto-Recognition (Fall back to finding ANY "Key: Value" pattern)
+        # This helps catch sections that are not in the predefined keywords list
+        general_kv = self._extract_general_key_value_pairs(text)
+        for k, v in general_kv.items():
+            if k not in fields:
+                fields[k] = v
+        
+        # 3. Apply generic fallbacks (Email, Phone, Dates)
+        generic_fields = self._extract_generic_fields(text)
+        # Only add if not already found
+        for k, v in generic_fields.items():
+            if k not in fields:
+                fields[k] = v
         
         # Calculate confidence for each field
         for field_name, field_value in fields.items():
             confidence[field_name] = self._calculate_field_confidence(field_name, field_value)
+        fields = {}
+        lines = text.split('\n')
         
-        return {
-            "fields": fields,
-            "confidence": confidence,
-            "document_type": document_type
-        }
+        for field_name, keywords in self.field_keywords.items():
+            # Skip fields that need special handling (like generic 'date' or 'email' regexes)
+            # unless we want to look for labeled ones too (e.g. "Email: foo@bar.com")
+            
+            for keyword in keywords:
+                # Create a pattern to find "Keyword[:\s]+Value"
+                # Escape keyword for regex safety
+                escaped_kw = re.escape(keyword)
+                
+                # Pattern 1: Keyword at start of line
+                # e.g. "Total: 500"
+                pattern = re.compile(r'(?:^|\n)\s*' + escaped_kw + r'[:\.\-]?\s+(.+)', re.IGNORECASE)
+                match = pattern.search(text)
+                
+                if match:
+                    value = match.group(1).strip()
+                    # Clean up value (remove trailing noise)
+                    if len(value) > 0:
+                        fields[field_name] = value
+                        break # Found a value for this field, stop looking at other keywords
+        
+        return fields
     
     def _extract_id_card_fields(self, text: str) -> Dict:
         """Extract fields specific to ID cards"""

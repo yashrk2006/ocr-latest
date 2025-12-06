@@ -261,31 +261,32 @@ function DocumentExtractorPage() {
 
     return (
         <div className="container" style={{ maxWidth: '1200px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div>
-                    <h1>🎯 Smart Document Hub</h1>
-                    <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
-                        Extract, Verify, Save, and Auto-Fill from any document.
-                    </p>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+            {/* Hero Section with Typing Effect */}
+            <div className="typing-hero">
+                <div className="typing-text">Smart Document Hub</div>
+                <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '1.1rem' }}>
+                    Extract, Verify, Save, and Auto-Fill from any document.
+                </p>
+            </div>
+
+            {/* Action Toolbar */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '2rem' }}>
+                <button
+                    className="btn-primary"
+                    onClick={() => setShowTraining(true)}
+                    style={{ backgroundColor: '#f59e0b' }}
+                >
+                    ⚙️ Train System
+                </button>
+                {Object.keys(formData).length > 0 && (
                     <button
                         className="btn-primary"
-                        onClick={() => setShowTraining(true)}
-                        style={{ backgroundColor: '#f59e0b' }}
+                        onClick={openPopOut}
+                        style={{ backgroundColor: '#6366f1' }}
                     >
-                        ⚙️ Train System
+                        ↗️ Pop Out Window
                     </button>
-                    {Object.keys(formData).length > 0 && (
-                        <button
-                            className="btn-primary"
-                            onClick={openPopOut}
-                            style={{ backgroundColor: '#6366f1' }}
-                        >
-                            ↗️ Pop Out Window
-                        </button>
-                    )}
-                </div>
+                )}
             </div>
 
             {/* Profile Bar */}
@@ -537,62 +538,66 @@ function DocumentExtractorPage() {
             </div>
             {loading && <div className="loading-spinner"></div>}
 
-            {error && (
-                <div className="error-message">
-                    <strong>Error:</strong> {error}
-                </div>
-            )}
+            {
+                error && (
+                    <div className="error-message">
+                        <strong>Error:</strong> {error}
+                    </div>
+                )
+            }
 
             {/* Training Modal */}
-            {showTraining && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-                }}>
-                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', width: '600px', maxWidth: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2>⚙️ Train Extraction System</h2>
-                            <button onClick={() => setShowTraining(false)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-                        </div>
+            {
+                showTraining && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+                    }}>
+                        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', width: '600px', maxWidth: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h2>⚙️ Train Extraction System</h2>
+                                <button onClick={() => setShowTraining(false)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+                            </div>
 
-                        <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-                            Teach the system new keywords. For example, if "Roll No" is written as "Enrolment #", add "Enrolment #" to the "roll_no" field.
-                        </p>
+                            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+                                Teach the system new keywords. For example, if "Roll No" is written as "Enrolment #", add "Enrolment #" to the "roll_no" field.
+                            </p>
 
-                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-                            <select
-                                value={selectedTrainingField}
-                                onChange={(e) => setSelectedTrainingField(e.target.value)}
-                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1 }}
-                            >
-                                {Object.keys(trainingPatterns).map(field => (
-                                    <option key={field} value={field}>{field.replace(/_/g, ' ').toUpperCase()}</option>
-                                ))}
-                            </select>
-                            <input
-                                type="text"
-                                placeholder="New Keyword (e.g. 'Enrolment #')"
-                                value={newKeyword}
-                                onChange={(e) => setNewKeyword(e.target.value)}
-                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 2 }}
-                            />
-                            <button className="btn-primary" onClick={handleAddPattern}>Add Rule</button>
-                        </div>
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                                <select
+                                    value={selectedTrainingField}
+                                    onChange={(e) => setSelectedTrainingField(e.target.value)}
+                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1 }}
+                                >
+                                    {Object.keys(trainingPatterns).map(field => (
+                                        <option key={field} value={field}>{field.replace(/_/g, ' ').toUpperCase()}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    placeholder="New Keyword (e.g. 'Enrolment #')"
+                                    value={newKeyword}
+                                    onChange={(e) => setNewKeyword(e.target.value)}
+                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 2 }}
+                                />
+                                <button className="btn-primary" onClick={handleAddPattern}>Add Rule</button>
+                            </div>
 
-                        <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem' }}>
-                            <h4 style={{ marginTop: 0 }}>Current Keywords for "{selectedTrainingField}":</h4>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                {trainingPatterns[selectedTrainingField]?.map((kw, i) => (
-                                    <span key={i} style={{ background: '#e2e8f0', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.9rem' }}>
-                                        {kw}
-                                    </span>
-                                ))}
+                            <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem' }}>
+                                <h4 style={{ marginTop: 0 }}>Current Keywords for "{selectedTrainingField}":</h4>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    {trainingPatterns[selectedTrainingField]?.map((kw, i) => (
+                                        <span key={i} style={{ background: '#e2e8f0', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.9rem' }}>
+                                            {kw}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
 

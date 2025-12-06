@@ -1,58 +1,28 @@
-import React from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
-import OCRPage from "./pages/OCRPage";
-import DocumentExtractorPage from "./pages/DocumentExtractorPage";
-
-function Navigation() {
-  const location = useLocation();
-
-  const navStyle = {
-    display: 'flex',
-    gap: '1rem',
-    padding: '1rem',
-    backgroundColor: 'var(--bg-secondary)',
-    borderRadius: '0.5rem',
-    marginBottom: '2rem',
-    justifyContent: 'center',
-    flexWrap: 'wrap'
-  };
-
-  const linkStyle = (path) => ({
-    padding: '0.75rem 1.5rem',
-    borderRadius: '0.5rem',
-    textDecoration: 'none',
-    fontWeight: 600,
-    transition: 'all 0.3s',
-    backgroundColor: location.pathname === path ? 'var(--primary)' : 'transparent',
-    color: location.pathname === path ? 'white' : 'var(--text-primary)',
-  });
-
-  return (
-    <nav style={navStyle}>
-      <Link to="/" style={linkStyle('/')}>
-        📝 Basic OCR
-      </Link>
-      <Link to="/extract" style={linkStyle('/extract')}>
-        🎯 Smart Document Hub
-      </Link>
-    </nav>
-  );
-}
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import DocumentExtractorPage from './pages/DocumentExtractorPage';
+import OCRPage from './pages/OCRPage';
+import Background from './components/Background';
+import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <div style={{ padding: '1rem' }}>
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<OCRPage />} />
-            <Route path="/extract" element={<DocumentExtractorPage />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </div>
+    <Router>
+      <div className="App">
+        <Background />
+        <nav style={{ padding: '1rem', backgroundColor: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '2rem' }}>
+            <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.1rem' }}>🎯 Smart Document Hub</Link>
+            <Link to="/basic" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontWeight: '600' }}>📝 Basic OCR</Link>
+          </div>
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<DocumentExtractorPage />} />
+          <Route path="/basic" element={<OCRPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
