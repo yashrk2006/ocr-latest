@@ -16,7 +16,11 @@ function OCRPage() {
     const file = event.target.files[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      if (file.type === 'application/pdf') {
+        setPreviewUrl(null); // No preview for PDF
+      } else {
+        setPreviewUrl(URL.createObjectURL(file));
+      }
       setOcrResult('');
       setConfidence(0);
       setError('');
@@ -117,7 +121,7 @@ function OCRPage() {
           <input
             type="file"
             id="file-upload"
-            accept="image/*"
+            accept="image/*,application/pdf"
             onChange={handleFileChange}
             style={{ display: 'none' }}
           />
@@ -133,7 +137,7 @@ function OCRPage() {
                 <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📁</span>
                 <span style={{ fontSize: '1.1rem', fontWeight: 500 }}>Click to upload an image</span>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Supports PNG, JPG, JPEG
+                  Supports PNG, JPG, JPEG, PDF
                 </p>
               </div>
             )}
