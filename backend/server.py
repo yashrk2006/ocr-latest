@@ -212,47 +212,26 @@ async def perform_ocr(
         # Simple binary threshold (values below threshold become black, above become white)
         binary_image = image_sharp.point(lambda x: 0 if x < threshold_value else 255, '1')
         
-        # Try multiple PSM modes and pick the best result
-        psm_modes = [
-            (6, "Assume a single uniform block of text"),
-            (3, "Fully automatic page segmentation"),
-            (4, "Assume a single column of text"),
-        ]
-        
-        best_text = ""
-        best_confidence = 0
-        
-        for psm, description in psm_modes:
-            try:
-                # OEM 1 = LSTM neural network mode (most accurate for modern documents)
-                custom_config = f'--oem 1 --psm {psm}'
-                
-                # Try on the enhanced binary image with specified language
-                text = pytesseract.image_to_string(binary_image, lang=language, config=custom_config)
-                
-                # Also get confidence data
-                data = pytesseract.image_to_data(binary_image, lang=language, config=custom_config, output_type=pytesseract.Output.DICT)
-                
-                # Calculate average confidence
-                confidences = [int(conf) for conf in data['conf'] if conf != '-1']
-                avg_confidence = sum(confidences) / len(confidences) if confidences else 0
-                
-                logger.info(f"PSM {psm}: confidence={avg_confidence:.2f}%, length={len(text)}")
-                
-                # Pick the result with highest confidence and reasonable length
-                if avg_confidence > best_confidence and len(text.strip()) > 10:
-                    best_confidence = avg_confidence
-                    best_text = text
-                    
-            except Exception as e:
-                logger.warning(f"PSM {psm} failed: {str(e)}")
-                continue
-        
-        # If no good result, fallback to simple OCR on original grayscale
-        if not best_text.strip():
-            logger.warning("All PSM modes failed or returned empty, using fallback")
-            custom_config = r'--oem 1 --psm 3'
-            best_text = pytesseract.image_to_string(image_sharp, lang=language, config=custom_config)
+        # Optimize: Run only one robust mode (PSM 3 - Fully Automatic) for speed
+        # This is 3x faster than trying multiple modes
+        try:
+            custom_config = f'--oem 1 --psm 3'
+            
+            # Run OCR once
+            best_text = pytesseract.image_to_string(binary_image, lang=language, config=custom_config)
+            
+            # Get confidence
+            data = pytesseract.image_to_data(binary_image, lang=language, config=custom_config, output_type=pytesseract.Output.DICT)
+            confidences = [int(conf) for conf in data['conf'] if conf != '-1']
+            best_confidence = sum(confidences) / len(confidences) if confidences else 0
+            
+            logger.info(f"OCR completed with confidence: {best_confidence:.2f}%")
+            
+        except Exception as e:
+            logger.error(f"OCR failed: {str(e)}")
+            # Fallback to raw image if processing failed
+            best_text = pytesseract.image_to_string(image, lang=language, config='--oem 1 --psm 3')
+            best_confidence = 0
         
         logger.info(f"OCR completed with confidence: {best_confidence:.2f}%")
         
