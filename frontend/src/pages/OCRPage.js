@@ -42,8 +42,8 @@ function OCRPage() {
     formData.append('file', selectedFile);
 
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/ocr?language=${language}`, {
+      // Use relative path for unified deployment
+      const response = await fetch(`/api/ocr?language=${language}`, {
         method: 'POST',
         body: formData,
       });
