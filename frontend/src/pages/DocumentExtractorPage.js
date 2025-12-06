@@ -94,7 +94,11 @@ function DocumentExtractorPage() {
         const file = event.target.files[0];
         if (file) {
             setSelectedFile(file);
-            setPreviewUrl(URL.createObjectURL(file));
+            if (file.type === 'application/pdf') {
+                setPreviewUrl(null); // No preview for PDF
+            } else {
+                setPreviewUrl(URL.createObjectURL(file));
+            }
             setExtractedFields(null);
             setRawText('');
             setError('');
@@ -369,7 +373,7 @@ function DocumentExtractorPage() {
                                 <input
                                     type="file"
                                     onChange={handleFileChange}
-                                    accept="image/*"
+                                    accept="image/*,application/pdf"
                                     style={{ width: '100%' }}
                                 />
                                 {previewUrl && (

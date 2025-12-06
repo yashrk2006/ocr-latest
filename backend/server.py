@@ -13,6 +13,7 @@ from io import BytesIO
 
 from PIL import Image
 import pytesseract
+import fitz # PyMuPDF
 
 from field_extractor import FieldExtractor
 
@@ -141,8 +142,8 @@ async def perform_ocr(
         file: Image file to process
         language: Tesseract language code (eng, spa, fra, deu, hin, ara, etc.)
     """
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only image files are supported for OCR.")
+    if not file.content_type or (not file.content_type.startswith("image/") and file.content_type != "application/pdf"):
+        raise HTTPException(status_code=400, detail="Only image files and PDFs are supported.")
 
     # Validate language is installed
     try:
@@ -166,8 +167,18 @@ async def perform_ocr(
     try:
         file_bytes = await file.read()
         
-        # Open image with PIL
-        original_image = Image.open(BytesIO(file_bytes))
+        # Handle PDF or Image
+        if file.content_type == "application/pdf":
+            # Convert PDF to Image
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            if doc.page_count < 1:
+                raise HTTPException(status_code=400, detail="PDF is empty")
+            page = doc.load_page(0)
+            pix = page.get_pixmap(dpi=300)
+            original_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        else:
+            # Open image with PIL
+            original_image = Image.open(BytesIO(file_bytes))
         
         # Convert to RGB if needed
         if original_image.mode != 'RGB':
@@ -332,15 +343,23 @@ async def extract_fields(
     Returns:
         Extracted fields with confidence scores
     """
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only image files are supported.")
+    if not file.content_type or (not file.content_type.startswith("image/") and file.content_type != "application/pdf"):
+        raise HTTPException(status_code=400, detail="Only image files and PDFs are supported.")
     
     try:
         # First, perform OCR to get text
         file_bytes = await file.read()
         
-        # Open and preprocess image (reuse logic from perform_ocr)
-        original_image = Image.open(BytesIO(file_bytes))
+        # Handle PDF or Image
+        if file.content_type == "application/pdf":
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            if doc.page_count < 1:
+                raise HTTPException(status_code=400, detail="PDF is empty")
+            page = doc.load_page(0)
+            pix = page.get_pixmap(dpi=300)
+            original_image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        else:
+            original_image = Image.open(BytesIO(file_bytes))
         
         if original_image.mode != 'RGB':
             original_image = original_image.convert('RGB')

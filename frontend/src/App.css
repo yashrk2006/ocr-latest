@@ -469,3 +469,56 @@ h1, h2, h3, h4, h5, h6, p, span, label, div {
   color: #0f172a;
 }
 
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .typing-hero {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .typing-text {
+    font-size: 1.5rem; /* Smaller font for mobile */
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* Stack flex containers */
+  .flex-row, .toolbar, .nav-links {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Adjust grid layouts */
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Adjust card padding */
+  .card {
+    padding: 1rem;
+  }
+
+  /* Adjust buttons */
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Upload area */
+  .upload-area {
+    padding: 1.5rem;
+  }
+  
+  /* Navigation */
+  nav > div {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
