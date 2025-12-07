@@ -583,10 +583,10 @@ class FieldExtractor:
         
         # This pattern looks for:
         # Start of line or newline
-        # A group of 1-4 words (the key)
-        # A colon separator
+        # A group of 2-40 characters (letters, numbers, spaces, common symbols) - logic relaxed
+        # A separator (colon, dash, dot)
         # A value (the rest of the line)
-        pair_pattern = re.compile(r'(?:^|\n)\s*([A-Za-z\s/]{2,30})\s*[:\-\.]+\s*(.+)', re.MULTILINE)
+        pair_pattern = re.compile(r'(?:^|\n)\s*([A-Za-z0-9\s/\(\)\._#]{2,40})\s*[:\-\.]+\s*(.+)', re.MULTILINE)
         
         matches = pair_pattern.finditer(text)
         for match in matches:

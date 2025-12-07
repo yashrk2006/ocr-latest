@@ -215,8 +215,9 @@ function FormOverlayPage() {
                             {textElements.map(el => (
                                 <Draggable
                                     key={el.id}
-                                    defaultPosition={{ x: el.x, y: el.y }}
+                                    position={{ x: el.x, y: el.y }}
                                     onStop={(e, data) => handleStop(el.id, e, data)}
+
                                     bounds="parent"
                                 >
                                     <div
