@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
+import { ProgressWithLabel } from '../components/ui/progress-bar';
 
 function DocumentExtractorPage() {
     const [selectedFile, setSelectedFile] = useState(null);
@@ -77,7 +78,7 @@ function DocumentExtractorPage() {
 
     // Validation helper functions
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const validatePhone = (phone) => /^[\d\s\-\+\(\)]{10,}$/.test(phone);
+    const validatePhone = (phone) => /^[\d\s\-+()]{10,}$/.test(phone);
     const validateDate = (date) => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
     const validateField = (fieldName, value) => {
@@ -249,11 +250,7 @@ function DocumentExtractorPage() {
         }
     };
 
-    const getConfidenceColor = (confidence) => {
-        if (confidence >= 0.8) return '#10b981';
-        if (confidence >= 0.6) return '#f59e0b';
-        return '#ef4444';
-    };
+
 
     // Filter fields for display
     const filteredFields = Object.entries(formData).filter(([key, value]) =>
@@ -544,7 +541,26 @@ function DocumentExtractorPage() {
                     </div>
                 )}
             </div>
-            {loading && <div className="loading-spinner"></div>}
+            {/* Loading Overlay */}
+            {loading && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(255,255,255,0.8)',
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center',
+                    zIndex: 2000,
+                    backdropFilter: 'blur(5px)'
+                }}>
+                    <ProgressWithLabel
+                        value="auto"
+                        simulated={true}
+                        label="Analyzing Document..."
+                        colorFrom="#6366f1"
+                        colorTo="#a855f7"
+                    />
+                    <p style={{ marginTop: '1rem', color: '#666' }}>This may take up to 60s for high-res images...</p>
+                </div>
+            )}
 
             {
                 error && (
