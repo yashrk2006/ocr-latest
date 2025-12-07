@@ -313,8 +313,8 @@ class FieldExtractor:
 
     def _extract_roll_no(self, text: str) -> Optional[str]:
         """Extract Roll Number"""
-        # Matches: Roll No 24/94076, Roll No. 12345, Roll: 123
-        pattern = re.compile(r'(?:Roll\s*No|Roll\s*Number|Roll)[\s.:]+([A-Z0-9/]+)', re.IGNORECASE)
+        # Matches: Roll No 24/94076, Roll No. 12345, Roll: 123, RolNo ~=—- 24/94076
+        pattern = re.compile(r'(?:Roll\s*No|Roll\s*Number|Roll|RolNo)[\s.:~=—-]+([A-Z0-9/]+)', re.IGNORECASE)
         match = pattern.search(text)
         if match:
             return match.group(1).strip()
@@ -335,8 +335,8 @@ class FieldExtractor:
 
     def _extract_admission_year(self, text: str) -> Optional[str]:
         """Extract Admission Year"""
-        # Matches: Admn. Y 30/08/2024, Admission Year 2024
-        pattern = re.compile(r'(?:Admn\.?\s*Y|Admission\s*Year|Admn)[\s.:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4})', re.IGNORECASE)
+        # Matches: Admn. Y 30/08/2024, Admission Year 2024, Aamn. Y
+        pattern = re.compile(r'(?:Admn\.?\s*Y|Admission\s*Year|Admn|Aamn\.?\s*Y)[\s.:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4})', re.IGNORECASE)
         match = pattern.search(text)
         if match:
             return match.group(1).strip()
@@ -344,9 +344,9 @@ class FieldExtractor:
 
     def _extract_date_of_birth(self, text: str) -> Optional[str]:
         """Extract date of birth"""
-        # Enhanced pattern to catch D.O.Birth, DOB, etc.
+        # Enhanced pattern to catch D.O.Birth, DOB, etc., including fuzzy "osirth"
         dob_pattern = re.compile(
-            r'(?:D\.O\.Birth|D\.O\.B\.?|Date of Birth|Born|Birth Date)[\s.:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
+            r'(?:D\.O\.Birth|D\.O\.B\.?|Date of Birth|Born|Birth Date|d\.\s*osirth|Birth)[\s.:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
             re.IGNORECASE
         )
         
