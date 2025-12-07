@@ -399,226 +399,240 @@ function DocumentExtractorPage() {
                             </button>
                         </form>
                     </div>
-                    style={{ width: '120px', padding: '0.25rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1' }}
-                                />
-                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {filteredFields.map(([key, value]) => (
-                        <div
-                            key={key}
-                            onClick={() => copyToClipboard(value, key)}
-                            style={{
-                                padding: '0.75rem',
-                                borderRadius: '0.5rem',
-                                border: copiedField === key ? '2px solid #22c55e' : '1px solid #e2e8f0',
-                                backgroundColor: copiedField === key ? '#dcfce7' : '#f8fafc',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                {key.replace(/_/g, ' ')}
+                    {Object.keys(formData).length > 0 && (
+                        <div style={{ backgroundColor: 'white', border: '1px solid var(--border)', borderRadius: '1rem', padding: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3>📋 Detected Data</h3>
+                                <input
+                                    type="text"
+                                    placeholder="🔍 Search..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{ width: '120px', padding: '0.25rem', borderRadius: '0.25rem', border: '1px solid #cbd5e1' }}
+                                />
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: '#1e293b', wordBreak: 'break-all' }}>
-                                {value}
+
+                            {/* --- INSERTED AUTO-FILL BUTTON HERE --- */}
+                            <div style={{ marginBottom: '1rem' }}>
+                                <button
+                                    className="btn-primary"
+                                    style={{ width: '100%', backgroundColor: '#8b5cf6', marginBottom: '15px' }}
+                                    onClick={() => window.location.href = '/fill-form'}
+                                >
+                                    ✍️ Auto-Fill a Form with this Data
+                                </button>
                             </div>
-                            {copiedField === key && <div style={{ color: '#15803d', fontSize: '0.7rem', fontWeight: 'bold', marginTop: '0.25rem' }}>✓ Copied!</div>}
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {filteredFields.map(([key, value]) => (
+                                    <div
+                                        key={key}
+                                        onClick={() => copyToClipboard(value, key)}
+                                        style={{
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: copiedField === key ? '2px solid #22c55e' : '1px solid #e2e8f0',
+                                            backgroundColor: copiedField === key ? '#dcfce7' : '#f8fafc',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                            {key.replace(/_/g, ' ')}
+                                        </div>
+                                        <div style={{ fontSize: '0.9rem', color: '#1e293b', wordBreak: 'break-all' }}>
+                                            {value}
+                                        </div>
+                                        {copiedField === key && <div style={{ color: '#15803d', fontSize: '0.7rem', fontWeight: 'bold', marginTop: '0.25rem' }}>✓ Copied!</div>}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    ))}
-                </div>
-            </div>
                     )}
-        </div>
+                </div>
 
-                {/* Right Panel: Verification & Export */ }
-    {
-        Object.keys(formData).length > 0 && (
-            <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3>✅ Verification & Export</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {showSaveDialog ? (
+                {/* Right Panel: Verification & Export */}
+                {Object.keys(formData).length > 0 && (
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3>✅ Verification & Export</h3>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <input
-                                    type="text"
-                                    placeholder="Profile Name"
-                                    value={profileName}
-                                    onChange={(e) => setProfileName(e.target.value)}
-                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1' }}
-                                />
-                                <button className="btn-primary" onClick={saveProfile} style={{ padding: '0.5rem 1rem' }}>Save</button>
-                                <button onClick={() => setShowSaveDialog(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>❌</button>
+                                {showSaveDialog ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Profile Name"
+                                            value={profileName}
+                                            onChange={(e) => setProfileName(e.target.value)}
+                                            style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1' }}
+                                        />
+                                        <button className="btn-primary" onClick={saveProfile} style={{ padding: '0.5rem 1rem' }}>Save</button>
+                                        <button onClick={() => setShowSaveDialog(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>❌</button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        className="btn-primary"
+                                        onClick={() => setShowSaveDialog(true)}
+                                        style={{ backgroundColor: '#10b981' }}
+                                    >
+                                        💾 Save Profile
+                                    </button>
+                                )}
                             </div>
-                        ) : (
-                            <button
-                                className="btn-primary"
-                                onClick={() => setShowSaveDialog(true)}
-                                style={{ backgroundColor: '#10b981' }}
-                            >
-                                💾 Save Profile
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {Object.entries(formData).map(([key, value]) => (
-                            <div key={key}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'capitalize' }}>
-                                    {key.replace(/_/g, ' ')}:
-                                </label>
-                                <input
-                                    type="text"
-                                    value={value}
-                                    onChange={(e) => handleFormChange(key, e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: validationErrors[key] ? '2px solid #ef4444' : '2px solid #e2e8f0',
-                                        backgroundColor: extractedFields && extractedFields.fields && extractedFields.fields[key] ? '#f0fdf4' : 'white',
-                                        color: 'var(--text-primary)'
-                                    }}
-                                />
-                                {validationErrors[key] && <span style={{ color: '#ef4444', fontSize: '0.8rem' }}>{validationErrors[key]}</span>}
-                            </div>
-                        ))}
-
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                            <button
-                                className="btn-primary"
-                                style={{ backgroundColor: '#6366f1', flex: 1 }}
-                                onClick={() => {
-                                    const blob = new Blob([JSON.stringify(formData, null, 2)], { type: 'application/json' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = 'data.json';
-                                    a.click();
-                                }}
-                            >
-                                Download JSON
-                            </button>
-                            <button
-                                className="btn-primary"
-                                style={{ backgroundColor: '#8b5cf6', flex: 1 }}
-                                onClick={() => {
-                                    const headers = Object.keys(formData).join(',');
-                                    const values = Object.values(formData).map(v => `"${v}"`).join(',');
-                                    const blob = new Blob([`${headers}\n${values}`], { type: 'text/csv' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = 'data.csv';
-                                    a.click();
-                                }}
-                            >
-                                Download CSV
-                            </button>
                         </div>
-                    </div>
-                </div>
 
-                {/* Raw Text Preview */}
-                {rawText && (
-                    <div style={{ marginTop: '2rem' }}>
-                        <details>
-                            <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}>View Raw OCR Text</summary>
-                            <div className="result-box" style={{ marginTop: '1rem', maxHeight: '200px' }}>
-                                {rawText}
+                        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {Object.entries(formData).map(([key, value]) => (
+                                    <div key={key}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'capitalize' }}>
+                                            {key.replace(/_/g, ' ')}:
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={value}
+                                            onChange={(e) => handleFormChange(key, e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: validationErrors[key] ? '2px solid #ef4444' : '2px solid #e2e8f0',
+                                                backgroundColor: extractedFields && extractedFields.fields && extractedFields.fields[key] ? '#f0fdf4' : 'white',
+                                                color: 'var(--text-primary)'
+                                            }}
+                                        />
+                                        {validationErrors[key] && <span style={{ color: '#ef4444', fontSize: '0.8rem' }}>{validationErrors[key]}</span>}
+                                    </div>
+                                ))}
+
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                    <button
+                                        className="btn-primary"
+                                        style={{ backgroundColor: '#6366f1', flex: 1 }}
+                                        onClick={() => {
+                                            const blob = new Blob([JSON.stringify(formData, null, 2)], { type: 'application/json' });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = 'data.json';
+                                            a.click();
+                                        }}
+                                    >
+                                        Download JSON
+                                    </button>
+                                    <button
+                                        className="btn-primary"
+                                        style={{ backgroundColor: '#8b5cf6', flex: 1 }}
+                                        onClick={() => {
+                                            const headers = Object.keys(formData).join(',');
+                                            const values = Object.values(formData).map(v => `"${v}"`).join(',');
+                                            const blob = new Blob([`${headers}\n${values}`], { type: 'text/csv' });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = 'data.csv';
+                                            a.click();
+                                        }}
+                                    >
+                                        Download CSV
+                                    </button>
+                                </div>
                             </div>
-                        </details>
+                        </div>
+
+                        {/* Raw Text Preview */}
+                        {rawText && (
+                            <div style={{ marginTop: '2rem' }}>
+                                <details>
+                                    <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}>View Raw OCR Text</summary>
+                                    <div className="result-box" style={{ marginTop: '1rem', maxHeight: '200px' }}>
+                                        {rawText}
+                                    </div>
+                                </details>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
-        )
-    }
-            </div >
-        {/* Loading Overlay */ }
-    {
-        loading && (
-            <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                backgroundColor: 'rgba(255,255,255,0.8)',
-                display: 'flex', flexDirection: 'column',
-                justifyContent: 'center', alignItems: 'center',
-                zIndex: 2000,
-                backdropFilter: 'blur(5px)'
-            }}>
-                <ProgressWithLabel
-                    value="auto"
-                    simulated={true}
-                    label="Analyzing Document..."
-                    colorFrom="#6366f1"
-                    colorTo="#a855f7"
-                />
-                <p style={{ marginTop: '1rem', color: '#666' }}>This may take up to 60s for high-res images...</p>
-            </div>
-        )
-    }
 
-    {
-        error && (
-            <div className="error-message">
-                <strong>Error:</strong> {error}
-            </div>
-        )
-    }
+            {/* Loading Overlay */}
+            {loading && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(255,255,255,0.8)',
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center',
+                    zIndex: 2000,
+                    backdropFilter: 'blur(5px)'
+                }}>
+                    <ProgressWithLabel
+                        value="auto"
+                        simulated={true}
+                        label="Analyzing Document..."
+                        colorFrom="#6366f1"
+                        colorTo="#a855f7"
+                    />
+                    <p style={{ marginTop: '1rem', color: '#666' }}>This may take up to 60s for high-res images...</p>
+                </div>
+            )}
 
-    {/* Training Modal */ }
-    {
-        showTraining && (
-            <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-            }}>
-                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', width: '600px', maxWidth: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h2>⚙️ Train Extraction System</h2>
-                        <button onClick={() => setShowTraining(false)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-                    </div>
+            {error && (
+                <div className="error-message">
+                    <strong>Error:</strong> {error}
+                </div>
+            )}
 
-                    <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-                        Teach the system new keywords. For example, if "Roll No" is written as "Enrolment #", add "Enrolment #" to the "roll_no" field.
-                    </p>
+            {/* Training Modal */}
+            {showTraining && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+                }}>
+                    <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', width: '600px', maxWidth: '90%', maxHeight: '80vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h2>⚙️ Train Extraction System</h2>
+                            <button onClick={() => setShowTraining(false)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+                        </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-                        <select
-                            value={selectedTrainingField}
-                            onChange={(e) => setSelectedTrainingField(e.target.value)}
-                            style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1 }}
-                        >
-                            {Object.keys(trainingPatterns).map(field => (
-                                <option key={field} value={field}>{field.replace(/_/g, ' ').toUpperCase()}</option>
-                            ))}
-                        </select>
-                        <input
-                            type="text"
-                            placeholder="New Keyword (e.g. 'Enrolment #')"
-                            value={newKeyword}
-                            onChange={(e) => setNewKeyword(e.target.value)}
-                            style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 2 }}
-                        />
-                        <button className="btn-primary" onClick={handleAddPattern}>Add Rule</button>
-                    </div>
+                        <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+                            Teach the system new keywords. For example, if "Roll No" is written as "Enrolment #", add "Enrolment #" to the "roll_no" field.
+                        </p>
 
-                    <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem' }}>
-                        <h4 style={{ marginTop: 0 }}>Current Keywords for "{selectedTrainingField}":</h4>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                            {trainingPatterns[selectedTrainingField]?.map((kw, i) => (
-                                <span key={i} style={{ background: '#e2e8f0', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.9rem' }}>
-                                    {kw}
-                                </span>
-                            ))}
+                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                            <select
+                                value={selectedTrainingField}
+                                onChange={(e) => setSelectedTrainingField(e.target.value)}
+                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 1 }}
+                            >
+                                {Object.keys(trainingPatterns).map(field => (
+                                    <option key={field} value={field}>{field.replace(/_/g, ' ').toUpperCase()}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="text"
+                                placeholder="New Keyword (e.g. 'Enrolment #')"
+                                value={newKeyword}
+                                onChange={(e) => setNewKeyword(e.target.value)}
+                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #cbd5e1', flex: 2 }}
+                            />
+                            <button className="btn-primary" onClick={handleAddPattern}>Add Rule</button>
+                        </div>
+
+                        <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem' }}>
+                            <h4 style={{ marginTop: 0 }}>Current Keywords for "{selectedTrainingField}":</h4>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                {trainingPatterns[selectedTrainingField]?.map((kw, i) => (
+                                    <span key={i} style={{ background: '#e2e8f0', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.9rem' }}>
+                                        {kw}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        )
-    }
-        </div >
+            )}
+        </div>
     );
 }
 
