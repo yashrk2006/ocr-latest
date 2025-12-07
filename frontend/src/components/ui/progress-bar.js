@@ -20,10 +20,11 @@ export function ProgressWithLabel({
         if (simulated && value === 'auto') {
             let current = 0;
             const interval = setInterval(() => {
-                current += (90 - current) * 0.05; // Decaying growth
-                if (current > 89) current = 89;
-                setProgress(current);
-            }, 500);
+                // Approach 99% smoothly - gets slower as it gets closer
+                // Using a smaller factor prevents it from rushing to the end
+                current += (99 - current) * 0.01;
+                setProgress(Math.min(current, 99));
+            }, 100);
             return () => clearInterval(interval);
         }
         // If value is provided directly (e.g. 0, then 100)
