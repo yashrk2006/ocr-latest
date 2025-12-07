@@ -432,19 +432,19 @@ function DocumentExtractorPage() {
                                         style={{
                                             padding: '0.75rem',
                                             borderRadius: '0.5rem',
-                                            border: copiedField === key ? '2px solid #22c55e' : '1px solid #e2e8f0',
-                                            backgroundColor: copiedField === key ? '#dcfce7' : '#f8fafc',
+                                            border: copiedField === key ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                                            backgroundColor: copiedField === key ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
                                             cursor: 'pointer',
                                             transition: 'all 0.2s'
                                         }}
                                     >
-                                        <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 'bold' }}>
                                             {key.replace(/_/g, ' ')}
                                         </div>
-                                        <div style={{ fontSize: '0.9rem', color: '#1e293b', wordBreak: 'break-all' }}>
+                                        <div style={{ fontSize: '0.9rem', color: 'white', wordBreak: 'break-all' }}>
                                             {value}
                                         </div>
-                                        {copiedField === key && <div style={{ color: '#15803d', fontSize: '0.7rem', fontWeight: 'bold', marginTop: '0.25rem' }}>✓ Copied!</div>}
+                                        {copiedField === key && <div style={{ color: '#4ade80', fontSize: '0.7rem', fontWeight: 'bold', marginTop: '0.25rem' }}>✓ Copied!</div>}
                                     </div>
                                 ))}
                             </div>

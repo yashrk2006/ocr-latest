@@ -158,8 +158,8 @@ function FormOverlayPage() {
                         <div style={{ marginTop: '1rem', maxHeight: '300px', overflowY: 'auto' }}>
                             {textElements.length === 0 && <p style={{ color: '#888', fontStyle: 'italic' }}>No data loaded.</p>}
                             {textElements.map(el => (
-                                <div key={el.id} style={{ marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>
-                                    <label style={{ fontSize: '0.8rem', color: '#666' }}>{el.label}</label>
+                                <div key={el.id} style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{el.label}</label>
                                     <input
                                         type="text"
                                         value={el.text}
