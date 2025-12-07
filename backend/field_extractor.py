@@ -194,7 +194,7 @@ class FieldExtractor:
         
         # 1. Always try dynamic extraction for ALL known fields
         # This ensures we catch things like "Total Amount" even in an ID card if present
-        dynamic_fields = self._extract_fields_dynamically(text)
+        dynamic_fields = self._extract_general_key_value_pairs(text)
         fields.update(dynamic_fields)
 
         # 2. Apply specific logic based on document type (can override or augment)
@@ -572,6 +572,41 @@ class FieldExtractor:
         # Return as-is if no mapping found
         return field_name.replace(' ', '_')
     
+    def _extract_general_key_value_pairs(self, text: str) -> Dict:
+        """
+        Dynamically find "Key: Value" pairs in text
+        This is a fallback/general catch-all for fields we haven't explicitly defined patterns for
+        """
+        fields = {}
+        # Regex to find "Label: Value" or "Label : Value"
+        # We assume labels are 2-4 words and reasonably short
+        
+        # This pattern looks for:
+        # Start of line or newline
+        # A group of 1-4 words (the key)
+        # A colon separator
+        # A value (the rest of the line)
+        pair_pattern = re.compile(r'(?:^|\n)\s*([A-Za-z\s/]{2,30})\s*[:\-\.]+\s*(.+)', re.MULTILINE)
+        
+        matches = pair_pattern.finditer(text)
+        for match in matches:
+            key = match.group(1).strip()
+            value = match.group(2).strip()
+            
+            # Filter out keys that are too long or garbage
+            if len(key) > 40 or len(value) < 2:
+                continue
+                
+            # Filter out likely false positives (e.g. just a date label without value)
+            if key.lower() in ['date', 'time', 'page'] and len(value) < 4:
+                continue
+            
+            # Map known keys to standard names, or use slugified key
+            standard_name = self._map_field_name(key)
+            fields[standard_name] = value
+            
+        return fields
+
     def _calculate_field_confidence(self, field_name: str, field_value: str) -> float:
         """Calculate confidence score for extracted field"""
         if not field_value:
