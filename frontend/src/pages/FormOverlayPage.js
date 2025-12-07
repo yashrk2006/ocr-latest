@@ -21,93 +21,6 @@ function FormOverlayPage() {
         if (file) {
             setTemplateImage(file);
             setTemplatePreview(URL.createObjectURL(file));
-        }
-    };
-
-    // 2. Handle Data Source (Extracted data to fill)
-    // For now, let's simulate pasting data or fetching from previous extraction
-    // In a real flow, this could come from location.state or context
-    const loadSampleData = () => {
-        const sample = {
-            "First Name": "John",
-            "Last Name": "Doe",
-            "Date of Birth": "1990-01-01",
-            "Address": "123 Main St, New York, NY",
-            "Phone": "+1-555-0199"
-        };
-        setExtractedData(sample);
-
-        // Convert to draggable elements
-        const elements = Object.entries(sample).map(([key, value], index) => ({
-            id: `field-${index}`,
-            label: key,
-            text: value,
-            x: 50,
-            y: 50 + (index * 40), // Stagger them initially
-            fontSize: 16,
-            fontFamily: 'Arial',
-            color: 'black'
-        }));
-        setTextElements(elements);
-    };
-
-    // 3. Update element position
-    const handleStop = (id, e, data) => {
-        setTextElements(prev => prev.map(el =>
-            el.id === id ? { ...el, x: data.x, y: data.y } : el
-        ));
-    };
-
-    // 4. Update element style
-    const updateStyle = (id, key, value) => {
-        setTextElements(prev => prev.map(el =>
-            el.id === id ? { ...el, [key]: value } : el
-        ));
-    };
-
-    // 5. Generate Final Image (using canvas)
-    const generateFinalImage = async () => {
-        if (!templatePreview) return;
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-
-            // Draw template
-            ctx.drawImage(img, 0, 0);
-
-            // Draw text elements
-            // Note: We need to scale coordinates if the screen preview size != actual image size
-            // For simplicity here, assuming 1:1 or handling scaling logic later
-            // A robust solution calculates the ratio between rendered width and natural width
-
-            const container = document.getElementById('canvas-container');
-            const ratio = img.width / container.offsetWidth;
-
-            textElements.forEach(el => {
-                ctx.font = `${el.fontSize * ratio}px ${el.fontFamily}`;
-                ctx.fillStyle = el.color;
-                ctx.fillText(el.text, el.x * ratio, (el.y + el.fontSize) * ratio);
-            });
-
-            // Download
-            const dataUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = 'filled-form.png';
-            link.href = dataUrl;
-            link.click();
-        };
-        img.src = templatePreview;
-    };
-
-    return (
-        <div className="container" style={{ maxWidth: '1400px' }}>
-            <h1>✍️ Smart Form Filler</h1>
-            <p>Drag extracted text onto your form perfectly.</p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '2rem' }}>
 
@@ -211,7 +124,7 @@ function FormOverlayPage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

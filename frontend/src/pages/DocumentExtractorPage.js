@@ -138,9 +138,13 @@ function DocumentExtractorPage() {
             setExtractedFields(data);
             setRawText(data.raw_text || '');
 
-            // Auto-fill form
+            // Save to LocalStorage for Form Overlay
             if (data.fields) {
+                localStorage.setItem('ocr_extracted_fields', JSON.stringify(data.fields));
                 setFormData(data.fields);
+            }
+            if (data.raw_text) {
+                localStorage.setItem('ocr_extracted_raw', data.raw_text);
             }
         } catch (err) {
             console.error("Extraction Error:", err);

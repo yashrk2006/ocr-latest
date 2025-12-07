@@ -1,45 +1,43 @@
 import React, { useMemo } from 'react';
 
 const Background = () => {
-    const colors = {
-        purple: '#241379',
-        'medium-blue': '#2185bf',
-        'light-blue': '#1fbce1',
-        red: '#b62f56',
-        orange: '#d5764c',
-        yellow: '#ffd53e',
-        cyan: '#78ffba',
-        'light-green': '#98fd85',
-        lime: '#befb46',
-        magenta: '#6c046c',
-        'lightish-red': '#f04c81',
-        pink: '#ff4293'
-    };
+  const colors = {
+    purple: '#241379',
+    'medium-blue': '#2185bf',
+    'light-blue': '#1fbce1',
+    red: '#b62f56',
+    orange: '#d5764c',
+    yellow: '#ffd53e',
+    cyan: '#78ffba',
+    'light-green': '#98fd85',
+    lime: '#befb46',
+    magenta: '#6c046c',
+    'lightish-red': '#f04c81',
+    pink: '#ff4293'
+  };
 
-    const styles = useMemo(() => {
-        let css = '';
-        const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+  const styles = useMemo(() => {
+    let css = '';
+    const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-        Object.entries(colors).forEach(([name, color]) => {
-            const size = random(5, 50);
-            const random1 = random(0, 100);
-            const random2 = random(0, 100);
+    Object.entries(colors).forEach(([name, color]) => {
+      const size = random(5, 50);
+      const random1 = random(0, 100);
+      const random2 = random(0, 100);
 
-            // Keyframe values
-            const random3 = random(0, 100);
-            const random4 = random(0, 100);
-            const random5 = random(0, 100);
-            const random6 = random(0, 100);
+      // Keyframe values
+      const random3 = random(0, 100);
+      const random4 = random(0, 100);
+      const random5 = random(0, 100);
+      const random6 = random(0, 100);
 
-            // Pseudo element values
-            const pRandom1 = random(-100, 100); // random-calc approximation
-            const pRandom2 = random(-100, 100);
-            const pRandom3 = random(-100, 100);
-            const pRandom4 = random(-100, 100);
-            const pRandom5 = random(-100, 100);
-            const pRandom6 = random(-100, 100);
+      // Pseudo element values
+      const pRandom3 = random(-100, 100);
+      const pRandom4 = random(-100, 100);
+      const pRandom5 = random(-100, 100);
+      const pRandom6 = random(-100, 100);
 
-            css += `
+      css += `
         .${name} {
           position: fixed;
           top: 0;
@@ -87,30 +85,30 @@ const Background = () => {
           100% { transform: translate3d(${pRandom5}vw, ${pRandom6}vh, 0) rotate(${random(0, 360)}deg); }
         }
       `;
-        });
+    });
 
-        return css;
-    }, []);
+    return css;
+  }, [colors]);
 
-    return (
-        <>
-            <style>{styles}</style>
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                background: 'radial-gradient(circle, #24246e, #06051f)',
-                overflow: 'hidden',
-                zIndex: -1
-            }}>
-                {Object.keys(colors).map(name => (
-                    <div key={name} className={name} />
-                ))}
-            </div>
-        </>
-    );
+  return (
+    <>
+      <style>{styles}</style>
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100vh',
+        background: 'radial-gradient(circle, #24246e, #06051f)',
+        overflow: 'hidden',
+        zIndex: -1
+      }}>
+        {Object.keys(colors).map(name => (
+          <div key={name} className={name} />
+        ))}
+      </div>
+    </>
+  );
 };
 
 export default Background;
