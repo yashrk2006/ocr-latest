@@ -188,12 +188,12 @@ async def perform_ocr(
         
         # Upscale image if it's too small (helps with low-resolution scans)
         width, height = original_image.size
-        min_dimension = 2000  # Target minimum dimension
+        min_dimension = 1024  # Target minimum dimension (Optimized for speed, was 2000)
         if width < min_dimension or height < min_dimension:
             scale_factor = max(min_dimension / width, min_dimension / height)
             new_width = int(width * scale_factor)
             new_height = int(height * scale_factor)
-            original_image = original_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            original_image = original_image.resize((new_width, new_height), Image.Resampling.BICUBIC)
             logger.info(f"Upscaled image from {width}x{height} to {new_width}x{new_height}")
         
         # Convert to grayscale
@@ -203,12 +203,9 @@ async def perform_ocr(
         import numpy as np
         img_array = np.array(image)
         
-        # Apply Gaussian blur to reduce noise
-        from PIL import ImageFilter
-        image_blurred = image.filter(ImageFilter.GaussianBlur(radius=1))
-        
+        # Skip Gaussian Blur for speed - directly enhance contrast
         # Enhance contrast significantly
-        enhancer = ImageEnhance.Contrast(image_blurred)
+        enhancer = ImageEnhance.Contrast(image)
         image_contrast = enhancer.enhance(2.0)
         
         # Enhance sharpness
@@ -366,22 +363,22 @@ async def extract_fields(
         if original_image.mode != 'RGB':
             original_image = original_image.convert('RGB')
         
-        # Upscale if needed
+        # Upscale if needed (Optimized)
         width, height = original_image.size
-        min_dimension = 2000
+        min_dimension = 1024 # Reduced from 2000
         if width < min_dimension or height < min_dimension:
             scale_factor = max(min_dimension / width, min_dimension / height)
             new_width = int(width * scale_factor)
             new_height = int(height * scale_factor)
-            original_image = original_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            original_image = original_image.resize((new_width, new_height), Image.Resampling.BICUBIC)
         
         # Convert to grayscale and enhance
         image = original_image.convert('L')
         
-        from PIL import ImageFilter, ImageEnhance
-        image_blurred = image.filter(ImageFilter.GaussianBlur(radius=1))
+        # Optimized enhancements (No blur)
+        from PIL import ImageEnhance
         
-        enhancer = ImageEnhance.Contrast(image_blurred)
+        enhancer = ImageEnhance.Contrast(image)
         image_contrast = enhancer.enhance(2.0)
         
         enhancer = ImageEnhance.Sharpness(image_contrast)
