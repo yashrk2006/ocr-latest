@@ -396,14 +396,14 @@ async def extract_fields(
         
         # Extract structured fields
         extractor = FieldExtractor()
-        result = extractor.extract_all_fields(processed_text, document_type)
+        fields = extractor.extract_all_fields(processed_text, document_type)
         
-        # Add raw text to result
-        result['raw_text'] = processed_text
+        logger.info(f"Extracted {len(fields)} fields from {document_type}")
         
-        logger.info(f"Extracted {len(result['fields'])} fields from {document_type}")
-        
-        return result
+        return {
+            "fields": fields,
+            "raw_text": processed_text
+        }
         
     except Exception as exc:
         logger.exception("Error during field extraction")
