@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../App.css';
+import { ProgressWithLabel } from '../components/ui/progress-bar';
 
 function OCRPage() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -156,7 +157,25 @@ function OCRPage() {
         </button>
       </form>
 
-      {loading && <div className="loading-spinner"></div>}
+      {loading && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(255,255,255,0.8)',
+          display: 'flex', flexDirection: 'column',
+          justifyContent: 'center', alignItems: 'center',
+          zIndex: 2000,
+          backdropFilter: 'blur(5px)'
+        }}>
+          <ProgressWithLabel
+            value="auto"
+            simulated={true}
+            label="Scanning Document..."
+            colorFrom="#10b981"
+            colorTo="#3b82f6"
+          />
+          <p style={{ marginTop: '1rem', color: '#666' }}>Analyzing text patterns...</p>
+        </div>
+      )}
 
       {error && (
         <div className="error-message">
